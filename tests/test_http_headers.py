@@ -157,6 +157,24 @@ def test_update() -> None:
     assert h.getlist("X-Forwarded-For") == [b"ip1", b"ip2"]
 
 
+def test_ior() -> None:
+    h = Headers({"Content-Type": "text/html"})
+    h |= {"X-Forwarded-For": ["ip1", "ip2"], "CONTENT-TYPE": "text/plain"}
+    assert list(h.keys()) == [b"Content-Type", b"X-Forwarded-For"]
+    assert h.getlist("Content-Type") == [b"text/plain"]
+    assert h.getlist("X-Forwarded-For") == [b"ip1", b"ip2"]
+
+    h |= [("Accept", "*/*")]
+    assert h.getlist("Accept") == [b"*/*"]
+
+    h |= Headers({"X-Forwarded-For": "ip3"})
+    assert h.getlist("X-Forwarded-For") == [b"ip3"]
+
+    with pytest.raises(TypeError, match="Unsupported value type"):
+        h |= {"X-Bad": object()}
+    assert "X-Bad" not in h
+
+
 def test_copy() -> None:
     h1 = Headers({"header1": ["value1", "value2"]})
     h2 = copy.copy(h1)

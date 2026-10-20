@@ -84,6 +84,12 @@ class Headers(dict):  # type: ignore[type-arg]
             iseq.setdefault(key, []).extend(self._normvalue(v))
         dict.update(self, iseq)
 
+    # dict.__ior__ updates the dictionary directly, without normalizing the
+    # keys and values as update() does.
+    def __ior__(self, other: Any) -> Self:  # type: ignore[misc]
+        self.update(other)
+        return self
+
     def _normkey(self, key: str | bytes) -> bytes:
         """Normalize key to bytes, matching the case of an existing key if any."""
         key = self._tobytes(key)
