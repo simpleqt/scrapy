@@ -223,6 +223,24 @@ class Downloader:
             "CONCURRENT_REQUESTS_PER_DOMAIN"
         )
         self.ip_concurrency: int = self.settings.getint("CONCURRENT_REQUESTS_PER_IP")
+        # A slot without concurrency queues its requests forever instead of
+        # failing, so reject those values before the crawl starts.
+        # CONCURRENT_REQUESTS_PER_IP is unset by default, which its own accessor
+        # reads as 0, so only a negative value is rejected there.
+        if self.domain_concurrency < 1:
+            msg = (
+                "CONCURRENT_REQUESTS_PER_DOMAIN must be a positive integer, "
+                f"got {self.domain_concurrency}. Only an unlimited value of "
+                "CONCURRENT_REQUESTS, which has no per-domain counterpart, "
+                "can be 0."
+            )
+            raise ValueError(msg)
+        if self.ip_concurrency < 0:
+            msg = (
+                "CONCURRENT_REQUESTS_PER_IP must be a positive integer, "
+                f"got {self.ip_concurrency}."
+            )
+            raise ValueError(msg)
         # Default delay of new slots. AutoThrottle overrides it to apply
         # AUTOTHROTTLE_START_DELAY.
         self._delay: float = self.settings.getfloat("DOWNLOAD_DELAY")

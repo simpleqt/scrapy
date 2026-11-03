@@ -599,6 +599,15 @@ def test_needs_backout(concurrency: int, active: int, expected: bool) -> None:
     downloader.close()
 
 
+@pytest.mark.parametrize("concurrency", [0, -1])
+def test_per_domain_concurrency_must_be_positive(concurrency: int) -> None:
+    crawler = get_crawler(settings_dict={"CONCURRENT_REQUESTS_PER_DOMAIN": concurrency})
+    with pytest.raises(
+        ValueError, match="CONCURRENT_REQUESTS_PER_DOMAIN must be a positive integer"
+    ):
+        Downloader(crawler)
+
+
 class TestSafeHostnameBytes:
     """Tests for the workarounds for hostnames rejected by the idna
     package."""
